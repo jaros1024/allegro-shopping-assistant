@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox fx:id="vbox" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1">
+        <fx:define>
+            <ToggleGroup fx:id="myToggleGroup" />
+        </fx:define>
+        <children>
+            <RadioButton fx:id="r1" text="Komputer stacjonarny">
+                <VBox.margin>
+                    <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+                </VBox.margin>
+         <toggleGroup>
+            <ToggleGroup fx:id="myToggleGroup" />
+         </toggleGroup>
+            </RadioButton>
+            <RadioButton fx:id="r2" text="Laptop" toggleGroup="$myToggleGroup">
+                <VBox.margin>
+                    <Insets bottom="20.0" left="20.0" right="20.0" top="5.0" />
+                </VBox.margin>
+            </RadioButton>
+        </children>
+</VBox>

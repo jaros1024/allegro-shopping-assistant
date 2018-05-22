@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Slider?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
+
+<GridPane fx:id="gridPane" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1">
+    <Slider fx:id="slider" blockIncrement="1.0" majorTickUnit="2.0" max="8.0" min="-8.0" minorTickCount="1" showTickMarks="true" snapToTicks="true" GridPane.columnIndex="1" />
+   <Label fx:id="leftLabel" text="Label" />
+   <Label fx:id="rightLabel" alignment="CENTER_RIGHT" contentDisplay="RIGHT" text="Label" GridPane.columnIndex="2" />
+    <columnConstraints>
+        <ColumnConstraints percentWidth="33.0" />
+        <ColumnConstraints percentWidth="33.0" />
+        <ColumnConstraints percentWidth="33.0" />
+    </columnConstraints>
+    <rowConstraints>
+        <RowConstraints />
+    </rowConstraints>
+</GridPane>

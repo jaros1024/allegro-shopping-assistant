@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>allegro-shopping-assistant</artifactId>
+        <groupId>com.perez.jaroslav.shoppingassistant</groupId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>shopping-assistant-core</artifactId>
+
+	<dependencies>
+        <dependency>
+            <groupId>com.perez.jaroslav.shoppingassistant</groupId>
+            <artifactId>shopping-assistant-api</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>gov.nist.math</groupId>
+            <artifactId>jama</artifactId>
+            <version>1.0.3</version>
+        </dependency>
+        <dependency>
+            <groupId>pl.edu.agh.talaga.PairwiseComparisons</groupId>
+            <artifactId>PairwiseComparisons</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>${basedir}/lib/PairwiseComparisons.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>org.ow2.sat4j</groupId>
+            <artifactId>org.ow2.sat4j.maxsat</artifactId>
+            <version>2.3.4</version>
+        </dependency>
+    </dependencies>
+
+</project>
