@@ -6,8 +6,8 @@ import com.perez.jaroslav.allegrosearchapi.items.ItemPacket;
 import com.perez.jaroslav.shoppingassistant.ViewController.ResultController;
 import com.perez.jaroslav.shoppingassistant.simplesolver.SimpleSolver;
 import com.perez.jaroslav.shoppingassistant.weight.Alternative;
+import com.perez.jaroslav.shoppingassistant.weight.SelectAlternative;
 
-import java.util.HashMap;
 import java.util.List;
 
 public class ResultsReceiver implements Runnable {
@@ -30,12 +30,17 @@ public class ResultsReceiver implements Runnable {
         while (loader.hasMorePackets()) {
             try {
                 itemPacket = loader.getNextPacket();
-                for(Item item:itemPacket.getItems()){
-                    SimpleWeightMaxSat simpleWeightMaxSat= new SimpleWeightMaxSat();
+                for (Item item : itemPacket.getItems()) {
+                    /*SimpleWeightMaxSat simpleWeightMaxSat= new SimpleWeightMaxSat();
                     simpleWeightMaxSat.setBestAlternatives(alternatives);
-                    resultController.addResultToList(simpleWeightMaxSat.solve(item));
+                    resultController.addResultToList(simpleWeightMaxSat.solve(item));*/
+                    WeightMaxSat2 weightMaxSat = new WeightMaxSat2();
+                    weightMaxSat.setMain((SelectAlternative) alternatives.get(0));
+                    SimpleSolver.Result r = weightMaxSat.solve(item);
+                    if (r.getValue() > 0.01)
+                        resultController.addResultToList(r);
                 }
-            } catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }

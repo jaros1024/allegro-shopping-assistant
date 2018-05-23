@@ -28,12 +28,13 @@ public class WeightMaxSat {
     private List<SoftClause> softClauses=new ArrayList<>();
     private List<SoftClause> exactlyClauses=new ArrayList<>();
     private VecInt sets=new VecInt();
+
     public WeightMaxSat() {
         //maxSatDecorator = new WeightedMaxSatDecorator(SolverFactory.newDefault());
         //solver = new ModelIterator(new OptToSatAdapter(new PseudoOptDecorator(maxSatDecorator)));
         map = new HashMap<>();
         counter = 0;
-        exactlyClauses.add(new SoftClause(1,sets));
+       // exactlyClauses.add(new SoftClause(1,sets));
     }
 
     public void InitExactlyAndSingleSoftFromAlternatives(List<Alternative> alternativeList) throws ContradictionException {

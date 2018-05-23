@@ -1,5 +1,6 @@
 package com.perez.jaroslav.shoppingassistant.weight;
 
+import com.perez.jaroslav.allegrosearchapi.items.Parameter;
 import pl.edu.agh.talaga.PairwiseComparisons;
 
 import java.util.ArrayList;
@@ -102,9 +103,10 @@ public class SelectAlternative extends Alternative {
                 if (result.get(i) instanceof SelectAlternative)
                     ((SelectAlternative) result.get(i)).calcWeights2();
             }
-            //printRank(rank);
+            setWeightStrenghtToChilds();
         }
     }
+
 
     public void printMatrix(double[][] matrix) {
         System.out.println();
@@ -218,5 +220,37 @@ public class SelectAlternative extends Alternative {
         subSelectAlternatives.forEach(p ->
                 p.getResult().forEach(sub -> alt.add(sub)));
         return alt;
+    }
+
+    private double findMinWeight(List<Alternative> list) {
+        double min = 1;
+        for (Alternative alternative : list)
+            if (min > alternative.getWeight())
+                min = alternative.getWeight();
+        return min;
+    }
+
+    private double findMaxWeight(List<Alternative> list) {
+        double max = 0;
+        for (Alternative alternative : list)
+            if (max < alternative.getWeight())
+                max = alternative.getWeight();
+        return max;
+    }
+
+    private void setWeightStrenghtToChilds() {
+        for (SelectAlternative selectAlternative : subSelectAlternatives) {
+            double min = findMinWeight(selectAlternative.getResult());
+            double max = findMaxWeight(selectAlternative.getResult());
+            double range = (max - min) / 5.0;
+            for (Alternative a : selectAlternative.getResult()) {
+                if (a.getWeight() < min + 2*range)
+                    a.setWeightStrenght(Parameter.Matching.POORLY);
+                else if (a.getWeight() < min + 4 * range)
+                    a.setWeightStrenght(Parameter.Matching.AVERAGELY);
+                else
+                    a.setWeightStrenght(Parameter.Matching.STRONGLY);
+            }
+        }
     }
 }

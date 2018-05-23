@@ -10,16 +10,17 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.paint.Color;
 import javafx.util.Callback;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
 
 public class ResultController {
 
@@ -62,21 +63,49 @@ public class ResultController {
         name.prefWidthProperty().bind(tableView.widthProperty().divide(14));
         TableColumn weight = new TableColumn("ocena");
         weight.setCellValueFactory(
-                new PropertyValueFactory<SimpleSolver.Result, String>("Value")
-        );
-        weight.prefWidthProperty().bind(tableView.widthProperty().divide(14));
-        TableColumn price = new TableColumn("cena");
-        price.prefWidthProperty().bind(tableView.widthProperty().divide(14));
-        price.setCellValueFactory(
                 new Callback<TableColumn.CellDataFeatures<SimpleSolver.Result, String>, ObservableValue<String>>() {
                     @Override
                     public ObservableValue<String> call(TableColumn.CellDataFeatures<SimpleSolver.Result, String> param) {
-                        Optional<Parameter> r = param.getValue().getItem().getParameters().stream().filter(p -> p.getId() == "price").findFirst();
-                        return Bindings.createStringBinding(() -> r.isPresent() ? r.get().getValue() : " ");
+                        return Bindings.createStringBinding(() -> String.valueOf(param.getValue().getValue()));
                     }
                 }
         );
+        weight.prefWidthProperty().bind(tableView.widthProperty().divide(14));
+
+        TableColumn<SimpleSolver.Result, Parameter> price = new TableColumn("cena");
+        price.prefWidthProperty().bind(tableView.widthProperty().divide(14));
+        price.setCellValueFactory(p -> Bindings.createObjectBinding(p.getValue().getItem().getParameters().stream().filter(parameter -> parameter.getId().equals("price")).findFirst().get()));
+        Callback<TableColumn<SimpleSolver.Result, Parameter>, TableCell<SimpleSolver.Result, Parameter>> cellValueChange = (column -> {
+            return new TableCell<SimpleSolver.Result, Parameter>() {
+                @Override
+                protected void updateItem(Parameter p, boolean empty) {
+                    super.updateItem(p, empty);
+                    if (p == null || empty) {
+                        setText(null);
+                        setStyle("");
+                    } else {
+                        setText(p.getValue());
+                        switch (p.getMatching()) {
+                            case POORLY:
+                                //setTextFill(Color.DARKRED);
+                                setStyle("-fx-background-color: red");
+                                break;
+                            case AVERAGELY:
+                                setStyle("-fx-background-color: yellow");
+                                //setTextFill(Color.DARKORANGE);
+                                break;
+                            case STRONGLY:
+                                setStyle("-fx-background-color: green");
+                                //setTextFill(Color.GREEN);
+                        }
+                    }
+                }
+            };
+        });
+        price.setCellFactory(cellValueChange);
+
         tableView.getColumns().addAll(id, name, weight, price);
+
         HashMap<String, String> map = new HashMap<>();
         map.put("201717", "seria procesora");
         map.put("201725", "taktowanie bazowe procesora");
@@ -89,17 +118,10 @@ public class ResultController {
         map.put("201793", "chipset karty graficznej");
         map.put("201865", "system operacyjny");
         for (String s : map.keySet()) {
-            TableColumn p = new TableColumn(map.get(s));
+            TableColumn<SimpleSolver.Result, Parameter> p = new TableColumn(map.get(s));
             p.prefWidthProperty().bind(tableView.widthProperty().divide(14));
-            p.setCellValueFactory(
-                    new Callback<TableColumn.CellDataFeatures<SimpleSolver.Result, String>, ObservableValue<String>>() {
-                        @Override
-                        public ObservableValue<String> call(TableColumn.CellDataFeatures<SimpleSolver.Result, String> param) {
-                            Optional<Parameter> r = param.getValue().getItem().getParameters().stream().filter(p -> p.getId().equals(s)).findFirst();
-                            return Bindings.createStringBinding(() -> r.isPresent() ? r.get().getValue() : " ");
-                        }
-                    }
-            );
+            p.setCellValueFactory(param -> Bindings.createObjectBinding(param.getValue().getItem().getParameters().stream().filter(parameter -> parameter.getId().equals(s)).findFirst().get()));
+            p.setCellFactory(cellValueChange);
             tableView.getColumns().add(p);
         }
         tableView.setItems(data);

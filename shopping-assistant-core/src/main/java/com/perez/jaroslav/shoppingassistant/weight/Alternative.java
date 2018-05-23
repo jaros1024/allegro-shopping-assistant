@@ -1,5 +1,7 @@
 package com.perez.jaroslav.shoppingassistant.weight;
 
+import com.perez.jaroslav.allegrosearchapi.items.Parameter;
+
 import java.util.Objects;
 
 public class Alternative implements Comparable {
@@ -7,6 +9,7 @@ public class Alternative implements Comparable {
     protected String id;
     protected String name;
     protected double weight = 1;
+    protected Parameter.Matching weightStrenght = Parameter.Matching.POORLY;
 
     public Alternative() {
     }
@@ -69,12 +72,21 @@ public class Alternative implements Comparable {
 
         return 0;
     }
+
     @Override
     public String toString() {
         return name;
     }
 
     public int getWeightInt() {
-        return (int) (weight*1000);
+        return (int) (weight * 1000);
+    }
+
+    public Parameter.Matching getWeightStrenght() {
+        return weightStrenght;
+    }
+
+    public void setWeightStrenght(Parameter.Matching weightStrenght) {
+        this.weightStrenght = weightStrenght;
     }
 }

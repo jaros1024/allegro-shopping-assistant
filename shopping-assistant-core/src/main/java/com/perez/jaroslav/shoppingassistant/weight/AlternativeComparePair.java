@@ -4,7 +4,7 @@ public class AlternativeComparePair {
 
     private Alternative first;
     private Alternative second;
-    private double moreImportant=1;
+    private double moreImportant=0;
     private int i,j;
 
     public AlternativeComparePair(Alternative first, Alternative second,int i,int j) {

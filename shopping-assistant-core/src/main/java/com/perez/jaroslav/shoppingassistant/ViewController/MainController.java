@@ -15,6 +15,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -127,8 +128,9 @@ public class MainController {
         weightManager.getMain().getResult().forEach(p -> alternatives.put(p.getId(), p));
         ResultsReceiver resultsReceiver = new ResultsReceiver(resultController, alternatives, weightManager.getAllegroApi().getItemLoader());
         new Thread(resultsReceiver).start();*/
-
-        ResultsReceiver resultsReceiver = new ResultsReceiver(resultController, weightManager.getMain().getBestAlternatives(), weightManager.getAllegroApi().getItemLoader());
+        List<Alternative> list=new ArrayList<>();
+        list.add(weightManager.getMain());
+        ResultsReceiver resultsReceiver = new ResultsReceiver(resultController, list, weightManager.getAllegroApi().getItemLoader());
         new Thread(resultsReceiver).start();
 
       /*  itemLoader = weightManager.getAllegroApi().getItemLoader();

@@ -1,22 +1,26 @@
 package com.perez.jaroslav.allegrosearchapi.items;
 
 import java.util.Objects;
+import java.util.concurrent.Callable;
 
-public class Parameter {
+public class Parameter implements Callable<Parameter> {
     private String id;
     private String value;
-    boolean matching;
+
+    public enum Matching {POORLY, AVERAGELY, STRONGLY}
+
+    Matching matching=Matching.POORLY;
 
     public Parameter(String id, String value) {
         this.id = id;
         this.value = value;
     }
 
-    public boolean isMatching() {
+    public Matching getMatching() {
         return matching;
     }
 
-    public void setMatching(boolean matching) {
+    public void setMatching(Matching matching) {
         this.matching = matching;
     }
 
@@ -57,5 +61,10 @@ public class Parameter {
                 ", value='" + value + '\'' +
                 ", matching=" + matching +
                 '}';
+    }
+
+    @Override
+    public Parameter call() {
+        return this;
     }
 }
