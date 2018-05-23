@@ -42,7 +42,7 @@ public class Item {
 
     public boolean hasParameterWithId(String id){
         for(Parameter p : parameters){
-            if(p.id.equals(id)){
+            if(p.getId().equals(id)){
                 return true;
             }
         }

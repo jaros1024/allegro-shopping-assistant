@@ -2,10 +2,11 @@ package com.perez.jaroslav.shoppingassistant.ViewController;
 
 import com.perez.jaroslav.allegrosearchapi.AllegroApi;
 import com.perez.jaroslav.allegrosearchapi.ItemLoader;
-import com.perez.jaroslav.allegrosearchapi.items.ItemPacket;
-import com.perez.jaroslav.shoppingassistant.simplesolver.ResultsReceiver;
-import com.perez.jaroslav.shoppingassistant.simplesolver.SimpleSolver;
-import com.perez.jaroslav.shoppingassistant.weight.*;
+import com.perez.jaroslav.shoppingassistant.sat4j.ResultsReceiver;
+import com.perez.jaroslav.shoppingassistant.weight.Alternative;
+import com.perez.jaroslav.shoppingassistant.weight.AlternativeComparePair;
+import com.perez.jaroslav.shoppingassistant.weight.InputAlternative;
+import com.perez.jaroslav.shoppingassistant.weight.WeightManager;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
@@ -13,9 +14,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
-import org.sat4j.specs.TimeoutException;
 
-import java.util.HashMap;
 import java.util.List;
 
 
@@ -124,10 +123,14 @@ public class MainController {
     private void weightResultsControl() {
         ResultController resultController = new ResultController();
         mainView.setCenter(resultController.getAnchorPane());
-        HashMap<String, Alternative> alternatives = new HashMap<>();
+        /*HashMap<String, Alternative> alternatives = new HashMap<>();
         weightManager.getMain().getResult().forEach(p -> alternatives.put(p.getId(), p));
         ResultsReceiver resultsReceiver = new ResultsReceiver(resultController, alternatives, weightManager.getAllegroApi().getItemLoader());
+        new Thread(resultsReceiver).start();*/
+
+        ResultsReceiver resultsReceiver = new ResultsReceiver(resultController, weightManager.getMain().getBestAlternatives(), weightManager.getAllegroApi().getItemLoader());
         new Thread(resultsReceiver).start();
+
       /*  itemLoader = weightManager.getAllegroApi().getItemLoader();
         Thread thread = new Thread(itemLoader);
         thread.start();

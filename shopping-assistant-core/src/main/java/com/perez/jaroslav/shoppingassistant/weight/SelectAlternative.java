@@ -11,16 +11,16 @@ public class SelectAlternative extends Alternative {
     private List<InputAlternative> subInputAlternatives = new ArrayList<>();
     private List<AlternativeComparePair> comparePairs;
     private List<AlternativeComparePair> optionalComparePairs;
-    private List<Alternative> result=new ArrayList<>();
+    private List<Alternative> result = new ArrayList<>();
     private static PairwiseComparisons pairwiseComparisons = new PairwiseComparisons("shopping-assistant-core/lib/pairwiseComparisons.R");
 
     public SelectAlternative(String id, String name, int i) {
-        super(id,name,i);
+        super(id, name, i);
     }
 
     public void createComparePairs() {
-        subInputAlternatives.forEach(p->result.add(p));
-        subSelectAlternatives.forEach(p->result.add(p));
+        subInputAlternatives.forEach(p -> result.add(p));
+        subSelectAlternatives.forEach(p -> result.add(p));
         comparePairs = new ArrayList<>();
         optionalComparePairs = new ArrayList<>();
         int col = 1;
@@ -30,7 +30,7 @@ public class SelectAlternative extends Alternative {
         }
         for (int row = 0; row < result.size() - 2; row++) {
             for (col = 2 + row; col < result.size(); col++) {
-                optionalComparePairs.add(new AlternativeComparePair(result.get(row),result.get(col), row, col));
+                optionalComparePairs.add(new AlternativeComparePair(result.get(row), result.get(col), row, col));
             }
         }
         Random r = new Random();
@@ -70,7 +70,7 @@ public class SelectAlternative extends Alternative {
 */
     // PairwiseComparisons library
     public double[][] getMatrix() {
-        if (comparePairs.size()+optionalComparePairs.size() == 0) return null;
+        if (comparePairs.size() + optionalComparePairs.size() == 0) return null;
         double[][] P = new double[result.size()][result.size()];
         for (int i = 0; i < P.length; i++) {
             P[i][i] = 1;
@@ -96,11 +96,11 @@ public class SelectAlternative extends Alternative {
         if (result.size() > 0) {
             double[][] matrix = getMatrix();
             // matrix = pairwiseComparisons.koczkodajImprovedMatrixStep(matrix);
-            double[] rank=pairwiseComparisons.eigenValueRank(matrix);
+            double[] rank = pairwiseComparisons.eigenValueRank(matrix);
             for (int i = 0; i < result.size(); i++) {
                 result.get(i).setWeight(weight * rank[i]);
-                if( result.get(i) instanceof SelectAlternative)
-                    ((SelectAlternative)result.get(i)).calcWeights2();
+                if (result.get(i) instanceof SelectAlternative)
+                    ((SelectAlternative) result.get(i)).calcWeights2();
             }
             //printRank(rank);
         }
@@ -115,6 +115,7 @@ public class SelectAlternative extends Alternative {
             System.out.println();
         }
     }
+
     public void printRank(double[] matrix) {
         System.out.println();
         for (int i = 0; i < matrix.length; i++) {
@@ -172,6 +173,7 @@ public class SelectAlternative extends Alternative {
     public void addToSubAlternatives(SelectAlternative a) {
         subSelectAlternatives.add(a);
     }
+
     public void addToSubAlternatives(InputAlternative a) {
         subInputAlternatives.add(a);
     }
@@ -180,14 +182,41 @@ public class SelectAlternative extends Alternative {
         return result;
     }
 
-    public List<InputAlternative> getAllInputAlternative(){
-        List<InputAlternative> inputAlternatives=new ArrayList<>();
+    public List<InputAlternative> getAllInputAlternative() {
+        List<InputAlternative> inputAlternatives = new ArrayList<>();
         inputAlternatives.addAll(subInputAlternatives);
-        subSelectAlternatives.forEach(p->inputAlternatives.addAll(p.getAllInputAlternative()));
+        subSelectAlternatives.forEach(p -> inputAlternatives.addAll(p.getAllInputAlternative()));
         return inputAlternatives;
     }
+
+    public List<Alternative> getBestAlternatives() {
+        List<Alternative> alt = new ArrayList<>();
+        subInputAlternatives.forEach(p -> alt.add(p));
+        for (SelectAlternative s : subSelectAlternatives) {
+            // Alternative best = null;
+            List<Alternative> list = s.getResult();
+            list.sort((o1, o2) -> o1.getWeightInt() - o2.getWeightInt());
+            for (int i = 0; i < Math.sqrt(list.size()); i++) {
+                alt.add(list.get(i));
+            }
+          /*  for (Alternative sub : s.getResult())
+                if (best == null || sub.getWeight() > best.getWeight())
+                    best = sub;
+            alt.add(best);*/
+        }
+        return alt;
+    }
+
     @Override
     public String toString() {
         return name;
+    }
+
+    public List<Alternative> getAlternatives() {
+        List<Alternative> alt = new ArrayList<>();
+        subInputAlternatives.forEach(p -> alt.add(p));
+        subSelectAlternatives.forEach(p ->
+                p.getResult().forEach(sub -> alt.add(sub)));
+        return alt;
     }
 }
