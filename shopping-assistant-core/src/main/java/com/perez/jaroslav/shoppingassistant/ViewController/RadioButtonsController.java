@@ -42,6 +42,7 @@ public class RadioButtonsController {
                 alternative.setName(newValue.toString());
             }
         });
+        alternative.setName(r1Text);
         r1.setText(r1Text);
         r2.setText(r2Text);
     }

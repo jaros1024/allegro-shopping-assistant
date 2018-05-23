@@ -12,7 +12,7 @@ public class SelectAlternative extends Alternative {
     private List<AlternativeComparePair> comparePairs;
     private List<AlternativeComparePair> optionalComparePairs;
     private List<Alternative> result=new ArrayList<>();
-    private static PairwiseComparisons pairwiseComparisons = new PairwiseComparisons("pairwiseComparisons.R");
+    private static PairwiseComparisons pairwiseComparisons = new PairwiseComparisons("shopping-assistant-core/lib/pairwiseComparisons.R");
 
     public SelectAlternative(String id, String name, int i) {
         super(id,name,i);

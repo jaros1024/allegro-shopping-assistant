@@ -41,7 +41,7 @@ public class ShoppingAssistant extends Application {
 
 
         weightManager.initAllegroApi(credentials.get(0),credentials.get(1),credentials.get(2));
-       /* getResourceFiles("/").stream().forEach(p -> {
+        /*getResourceFiles("/").stream().forEach(p -> {
             System.out.println(p);
         });*/
     }
