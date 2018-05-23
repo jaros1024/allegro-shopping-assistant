@@ -6,6 +6,15 @@ public class Item {
     private long id;
     private String name;
     private List<Parameter> parameters;
+    private boolean isMatching;
+
+    public boolean isMatching() {
+        return isMatching;
+    }
+
+    public void setMatching(boolean matching) {
+        isMatching = matching;
+    }
 
     public long getId() {
         return id;
@@ -40,12 +49,12 @@ public class Item {
         return false;
     }
 
-    @Override
     public String toString() {
         return "Item{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", parameters=" + parameters +
+                ", isMatching=" + isMatching +
                 '}';
     }
 }
