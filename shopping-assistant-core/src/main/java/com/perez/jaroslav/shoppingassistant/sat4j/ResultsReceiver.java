@@ -4,21 +4,19 @@ import com.perez.jaroslav.allegrosearchapi.ItemLoader;
 import com.perez.jaroslav.allegrosearchapi.items.Item;
 import com.perez.jaroslav.allegrosearchapi.items.ItemPacket;
 import com.perez.jaroslav.shoppingassistant.ViewController.ResultController;
-import com.perez.jaroslav.shoppingassistant.simplesolver.SimpleSolver;
 import com.perez.jaroslav.shoppingassistant.weight.Alternative;
 import com.perez.jaroslav.shoppingassistant.weight.SelectAlternative;
-
-import java.util.List;
 
 public class ResultsReceiver implements Runnable {
 
     private ResultController resultController;
-    private List<Alternative> alternatives;
+    private Alternative alternative;
     private ItemLoader loader;
+    private boolean stop = false;
 
-    public ResultsReceiver(ResultController resultController, List<Alternative> alternatives, ItemLoader loader) {
+    public ResultsReceiver(ResultController resultController, Alternative alternative, ItemLoader loader) {
         this.resultController = resultController;
-        this.alternatives = alternatives;
+        this.alternative = alternative;
         this.loader = loader;
     }
 
@@ -27,16 +25,13 @@ public class ResultsReceiver implements Runnable {
         Thread thread = new Thread(loader);
         thread.start();
         ItemPacket itemPacket;
-        while (loader.hasMorePackets()) {
+        while (loader.hasMorePackets() && !stop) {
             try {
                 itemPacket = loader.getNextPacket();
                 for (Item item : itemPacket.getItems()) {
-                    /*SimpleWeightMaxSat simpleWeightMaxSat= new SimpleWeightMaxSat();
-                    simpleWeightMaxSat.setBestAlternatives(alternatives);
-                    resultController.addResultToList(simpleWeightMaxSat.solve(item));*/
-                    WeightMaxSat2 weightMaxSat = new WeightMaxSat2();
-                    weightMaxSat.setMain((SelectAlternative) alternatives.get(0));
-                    SimpleSolver.Result r = weightMaxSat.solve(item);
+                    WeightMaxSat weightMaxSat = new WeightMaxSat();
+                    weightMaxSat.setMain((SelectAlternative) alternative);
+                    WeightMaxSat.Result r = weightMaxSat.solve(item);
                     if (r.getValue() > 0.01)
                         resultController.addResultToList(r);
                 }
@@ -44,5 +39,9 @@ public class ResultsReceiver implements Runnable {
                 e.printStackTrace();
             }
         }
+    }
+
+    public void setStop(boolean stop) {
+        this.stop = stop;
     }
 }

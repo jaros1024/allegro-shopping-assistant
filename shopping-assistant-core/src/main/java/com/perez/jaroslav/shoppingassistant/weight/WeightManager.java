@@ -6,10 +6,6 @@ import com.perez.jaroslav.allegrosearchapi.filters.FilterOption;
 import com.perez.jaroslav.allegrosearchapi.filters.InputFilter;
 import com.perez.jaroslav.allegrosearchapi.filters.SelectFilter;
 import com.perez.jaroslav.allegrosearchapi.items.Item;
-import com.perez.jaroslav.allegrosearchapi.items.ItemPacket;
-import com.perez.jaroslav.shoppingassistant.sat4j.WeightMaxSat;
-import org.sat4j.specs.ContradictionException;
-import org.sat4j.specs.TimeoutException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +17,6 @@ public class WeightManager {
     private static final ReentrantLock LOCK = new ReentrantLock();
     private AllegroApi allegroApi;
     private SelectAlternative main;
-    private WeightMaxSat weightMaxSat;
     private List<Item> items = new ArrayList<>();
 
     private WeightManager() {
@@ -86,33 +81,6 @@ public class WeightManager {
         }
         weightManager.setMain(mainAlt);
 
-        weightMaxSat = new WeightMaxSat();
-    }
-
-    public void addAlternativesToWeightMaxSat() {
-        for (SelectAlternative s : main.getSubAlternatives()) {
-            try {
-                weightMaxSat.InitExactlyAndSingleSoftFromAlternatives(s.getResult());
-            } catch (ContradictionException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    public void addToWeightMaxSatItems(ItemPacket packet) {
-        for (Item item : packet.getItems()) {
-            items.add(item);
-            try {
-                weightMaxSat.addSet(item);
-            } catch (ContradictionException e) {
-                e.printStackTrace();
-            }
-        }
-
-    }
-
-    public void getSolve() throws TimeoutException, ContradictionException {
-        weightMaxSat.solve();
     }
 
 }

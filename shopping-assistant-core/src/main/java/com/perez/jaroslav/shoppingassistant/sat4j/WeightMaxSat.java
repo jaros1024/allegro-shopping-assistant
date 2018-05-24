@@ -3,158 +3,199 @@ package com.perez.jaroslav.shoppingassistant.sat4j;
 import com.perez.jaroslav.allegrosearchapi.items.Item;
 import com.perez.jaroslav.allegrosearchapi.items.Parameter;
 import com.perez.jaroslav.shoppingassistant.weight.Alternative;
+import com.perez.jaroslav.shoppingassistant.weight.InputAlternative;
+import com.perez.jaroslav.shoppingassistant.weight.SelectAlternative;
 import org.sat4j.core.VecInt;
 import org.sat4j.maxsat.SolverFactory;
 import org.sat4j.maxsat.WeightedMaxSatDecorator;
 import org.sat4j.pb.PseudoOptDecorator;
-import org.sat4j.pb.tools.DependencyHelper;
-import org.sat4j.pb.tools.WeightedObject;
 import org.sat4j.specs.ContradictionException;
 import org.sat4j.specs.TimeoutException;
-import org.sat4j.tools.GateTranslator;
 import org.sat4j.tools.ModelIterator;
 import org.sat4j.tools.OptToSatAdapter;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.NumberFormat;
+import java.text.ParseException;
+import java.util.*;
+import java.util.function.Predicate;
 
 public class WeightMaxSat {
+
     private WeightedMaxSatDecorator maxSatDecorator;
-    private ModelIterator solver;
-    private Map<String, Integer> map;
-    private int counter;
-    private List<SoftClause> softClauses=new ArrayList<>();
-    private List<SoftClause> exactlyClauses=new ArrayList<>();
-    private VecInt sets=new VecInt();
+    private SelectAlternative main;
+    private HashMap<Integer, Alternative> reverseMap;
 
     public WeightMaxSat() {
-        //maxSatDecorator = new WeightedMaxSatDecorator(SolverFactory.newDefault());
-        //solver = new ModelIterator(new OptToSatAdapter(new PseudoOptDecorator(maxSatDecorator)));
-        map = new HashMap<>();
-        counter = 0;
-       // exactlyClauses.add(new SoftClause(1,sets));
+        reverseMap = new HashMap<>();
     }
 
-    public void InitExactlyAndSingleSoftFromAlternatives(List<Alternative> alternativeList) throws ContradictionException {
-        VecInt alternatives = new VecInt();
-        for (Alternative alt : alternativeList) {
-            if (alt.getWeightInt() == 0)
-                continue;
-            counter++;
-            map.put(alt.getId(), counter);
-            System.out.println("MAP PUT : " + alt.getName() + " " + counter);
-            alternatives.push(counter);
-           // maxSatDecorator.addSoftClause(alt.getWeightInt(), new VecInt(new int[]{counter}));
-            softClauses.add(new SoftClause(alt.getWeightInt(), new VecInt(new int[]{counter})));
-            System.out.println("SOFT : waga: " + alt.getWeightInt() + " klauzula " + counter);
-        }
-        if (alternatives.size() > 0) {
-            //maxSatDecorator.addExactly(alternatives, 1);
-            exactlyClauses.add(new SoftClause(1,alternatives));
-            System.out.println("EXACTLY ONE :" + alternatives.toString());
+    public void setMain(SelectAlternative main) {
+        this.main = main;
+    }
+
+    public void initSimpleClause() throws ContradictionException {
+        int counter = 0;
+        if (reverseMap.size() == 0) {
+            for (InputAlternative inputAlternative : main.getAllInputAlternative()) {
+                counter++;
+                maxSatDecorator.addSoftClause(inputAlternative.getWeightInt(), new VecInt(new int[]{counter}));
+                reverseMap.put(counter, inputAlternative);
+            }
+
+            for (SelectAlternative s : main.getSubAlternatives()) {
+                VecInt vecInt = new VecInt();
+                List<Alternative> list = s.getResult();
+                list.sort((o1, o2) -> o2.getWeightInt() - o1.getWeightInt());
+                for (int i = 0; i < list.size(); i++) {
+                    counter++;
+                    maxSatDecorator.addSoftClause(list.get(i).getWeightInt(), new VecInt(new int[]{counter}));
+                    reverseMap.put(counter, list.get(i));
+                    vecInt.push(counter);
+                }
+                maxSatDecorator.addExactly(vecInt, 1);
+            }
         }
     }
 
-
-    public static void main(String[] args) throws TimeoutException {
-        // 1 - procesor A
-        // 2 - procesor B
-        // 3 - grafika A
-        // 4 - grafika B
-        // 5 - zestaw  A
-        // 6 - zestaw  B
-        final int MAXVAR = 20;
-        final int NBCLAUSES = 6;
-        WeightedMaxSatDecorator maxSatDecorator = new WeightedMaxSatDecorator(SolverFactory.newDefault());
+    public Result solve(Item item) {
+        maxSatDecorator = new WeightedMaxSatDecorator(SolverFactory.newDefault());
+        final int MAXVAR = calcVar();
+        final int NBCLAUSES = MAXVAR + main.getSubAlternatives().size() + item.getParameters().size();
         ModelIterator solver = new ModelIterator(new OptToSatAdapter(new PseudoOptDecorator(maxSatDecorator)));
         solver.newVar(MAXVAR);
         solver.setExpectedNumberOfClauses(NBCLAUSES);
-        GateTranslator translator = new GateTranslator(maxSatDecorator);
+        double weight = 0;
         try {
-            maxSatDecorator.addSoftClause(1, new VecInt(new int[]{1}));
-            maxSatDecorator.addSoftClause(3, new VecInt(new int[]{2}));
-            maxSatDecorator.addSoftClause(3, new VecInt(new int[]{3}));
-            maxSatDecorator.addSoftClause(2, new VecInt(new int[]{4}));
-
-            maxSatDecorator.addSoftClause(5, new VecInt(new int[]{2, -6}));
-            maxSatDecorator.addSoftClause(5, new VecInt(new int[]{4, -6}));
-            maxSatDecorator.addSoftClause(5, new VecInt(new int[]{-2, -4, 6}));
-            maxSatDecorator.addSoftClause(5, new VecInt(new int[]{1, -5}));
-            maxSatDecorator.addSoftClause(5, new VecInt(new int[]{3, -5}));
-            maxSatDecorator.addSoftClause(5, new VecInt(new int[]{-1, -3, 5}));
-
-            maxSatDecorator.addExactly(new VecInt(new int[]{1, 2}), 1);
-            maxSatDecorator.addExactly(new VecInt(new int[]{3, 4}), 1);
-            maxSatDecorator.addExactly(new VecInt(new int[]{5, 6}), 1);
-            //translator.and(5,new VecInt(new int[]{1,3}));
-            //translator.and(6,new VecInt(new int[]{2,4}));
-
+            initSimpleClause();
+            for (Parameter parameter : item.getParameters()) {
+                int pId = searchForParameter(parameter);
+                if (pId != 0) {
+                    maxSatDecorator.addHardClause(new VecInt(new int[]{pId}));
+                }
+            }
+            weight = gatherResult(item, solver, reverseMap);
         } catch (ContradictionException e) {
             e.printStackTrace();
+        } catch (TimeoutException e) {
+            e.printStackTrace();
         }
-        /*for (int i = 0; i<NBCLAUSES;i++){
-            int[] clause = {1,2,3,4};
-            try {
-                solver.addClause(new VecInt(clause)); // adapt Array to IVecInt
-            } catch (ContradictionException e) {
-                e.printStackTrace();
+        return new Result(item, weight);
+    }
+
+    public int calcVar() {
+        int var = 0;
+        var += main.getAllInputAlternative().size();
+        for (SelectAlternative s : main.getSubAlternatives())
+            var += s.getResult().size();
+
+        return var;
+    }
+
+    private int searchForParameter(Parameter p) {
+        for (Integer i : reverseMap.keySet()) {
+            Alternative alt = reverseMap.get(i);
+            if (alt instanceof InputAlternative) {
+                if (p.getId().equals(alt.getId()))
+                    if (isInputAlternativeSatisfied((InputAlternative) reverseMap.get(i), p)) {
+                        return i;
+                    } else
+                        return -i;
+            } else if (alt instanceof SelectAlternative) {
+                if (p.getValue().equals(alt.getName()))
+                    return i;
             }
-        }*/
-        System.out.println("Solver nVars: " + solver.nVars());
-        while (solver.isSatisfiable()) {
+        }
+        return 0;
+    }
+
+    private double gatherResult(Item item, ModelIterator solver, HashMap<Integer, Alternative> reverseMap) throws TimeoutException {
+        double weight = 0;
+        if (solver.isSatisfiable()) {
             System.out.println(solver.model().length);
             for (int i = 1; i <= solver.model().length; i++) {
                 System.out.print(solver.model(i) + " ");
+                if (solver.model(i)) {
+                    weight += reverseMap.get(i).getWeight();
+                    setIsMatchingToParameter(item, reverseMap.get(i));
+                }
             }
             System.out.println();
         }
-        maxSatDecorator.printStat(System.out, " ");
-
+        return weight;
     }
 
-    public void addSet(Item item) throws ContradictionException {
-        VecInt result = new VecInt();
-        counter++;
-        sets.push(counter);
-        map.put(String.valueOf(item.getId()), counter);
-        for (Parameter p : item.getParameters()) {
-            if (map.containsKey(p.getId())) {
-                int i = map.get(p.getId());
-                //maxSatDecorator.addSoftClause(10000, new VecInt(new int[]{i, -counter}));
-                softClauses.add(new SoftClause(10000, new VecInt(new int[]{i, -counter})));
-                result.push(-i);
-            }
+    private Parameter getParameterForAlt(Item item, Alternative alt) {
+        if (alt != null) {
+            Predicate<Parameter> p = null;
+            if (alt instanceof InputAlternative)
+                p = parameter -> parameter.getId().equals(alt.getId());
+            else
+                p = parameter -> parameter.getValue().equals(alt.getName());
+            Optional<Parameter> parameter = item.getParameters().stream().filter(p).findAny();
+            return (parameter.isPresent()) ? parameter.get() : null;
         }
-        result.push(counter);
-        //maxSatDecorator.addSoftClause(10000, result);
-        softClauses.add(new SoftClause(1000,result));
+        return null;
     }
 
-    public void solve() throws TimeoutException, ContradictionException {
-        final int MAXVAR = map.size();
-        final int NBCLAUSES = softClauses.size()+exactlyClauses.size();
-        WeightedMaxSatDecorator maxSatDecorator = new WeightedMaxSatDecorator(SolverFactory.newDefault());
-        ModelIterator solver = new ModelIterator(new OptToSatAdapter(new PseudoOptDecorator(maxSatDecorator)));
-        solver.newVar(MAXVAR);
-        solver.setExpectedNumberOfClauses(NBCLAUSES);
+    private void setIsMatchingToParameter(Item item, Alternative alt) {
+        Parameter p = getParameterForAlt(item, alt);
+        if (p != null)
+            p.setMatching(alt.getWeightStrenght());
+    }
 
-        for(SoftClause softClause:softClauses)
-            maxSatDecorator.addSoftClause(softClause.getWeight(),softClause.getVec());
-
-        for(SoftClause softClause:exactlyClauses)
-            maxSatDecorator.addExactly(softClause.getVec(),softClause.getWeight());
-
-        System.out.println("Solver nVars: " + solver.nVars());
-        while (solver.isSatisfiable()) {
-            System.out.println(solver.model().length);
-            for (int i = 1; i <= solver.model().length; i++) {
-                System.out.print(solver.model(i) + " ");
+    private boolean isInputAlternativeSatisfied(InputAlternative alternative, Parameter param) {
+        NumberFormat format = NumberFormat.getInstance(Locale.GERMAN);
+        try {
+            Number aMin = format.parse(alternative.getMinValue());
+            Number aMax = format.parse(alternative.getMaxValue());
+            Double paramValue = Double.valueOf(param.getValue());
+            if (paramValue >= aMin.doubleValue() && paramValue <= aMax.doubleValue()) {
+                alternative.setWeightStrenght(Parameter.Matching.STRONGLY);
+                return true;
+            } else {
+                alternative.setWeightStrenght(Parameter.Matching.POORLY);
+                return false;
             }
-            System.out.println();
+        } catch (ParseException e) {
+            e.printStackTrace();
         }
-        maxSatDecorator.printStat(System.out, " ");
+        return false;
     }
 
+    public static class Result implements Comparable {
+        private Item item;
+        private double value;
+
+        public Result(Item item, double value) {
+            this.item = item;
+            this.value = value;
+        }
+
+        public Item getItem() {
+            return item;
+        }
+
+        public double getValue() {
+            return value;
+        }
+
+        @Override
+        public int compareTo(Object o) {
+            return Double.compare(this.value, ((Result) o).getValue());
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Result result = (Result) o;
+            return Double.compare(result.value, value) == 0 &&
+                    Objects.equals(item, result.item);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(item, value);
+        }
+    }
 }

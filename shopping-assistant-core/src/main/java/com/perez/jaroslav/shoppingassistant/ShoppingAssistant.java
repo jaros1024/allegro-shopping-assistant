@@ -1,13 +1,5 @@
 package com.perez.jaroslav.shoppingassistant;
 
-import com.perez.jaroslav.allegrosearchapi.AllegroApi;
-import com.perez.jaroslav.allegrosearchapi.filters.Filter;
-import com.perez.jaroslav.allegrosearchapi.filters.FilterOption;
-import com.perez.jaroslav.allegrosearchapi.filters.InputFilter;
-import com.perez.jaroslav.allegrosearchapi.filters.SelectFilter;
-import com.perez.jaroslav.shoppingassistant.weight.Alternative;
-import com.perez.jaroslav.shoppingassistant.weight.InputAlternative;
-import com.perez.jaroslav.shoppingassistant.weight.SelectAlternative;
 import com.perez.jaroslav.shoppingassistant.weight.WeightManager;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -37,15 +29,18 @@ public class ShoppingAssistant extends Application {
         primaryStage.setTitle("Shopping Assistant");
         primaryStage.setScene(new Scene(root));
         primaryStage.show();
-        List<String> credentials=getParameters().getUnnamed();
+        List<String> credentials = getParameters().getUnnamed();
 
-
-        weightManager.initAllegroApi(credentials.get(0),credentials.get(1),credentials.get(2));
+        weightManager.initAllegroApi(credentials.get(0), credentials.get(1), credentials.get(2));
         /*getResourceFiles("/").stream().forEach(p -> {
             System.out.println(p);
         });*/
     }
 
+    @Override
+    public void stop() {
+        System.out.println("STOP");
+    }
 
 
     private List<String> getResourceFiles(String path) throws IOException {

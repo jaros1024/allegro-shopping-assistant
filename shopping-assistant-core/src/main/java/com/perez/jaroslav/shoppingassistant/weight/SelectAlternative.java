@@ -57,19 +57,7 @@ public class SelectAlternative extends Alternative {
         return optionalComparePairs;
     }
 
-    /*
-    public PairWiseComparisonMatrix getMatrixWithComparePairs() {
-        PairWiseComparisonMatrix P = new PairWiseComparisonMatrix(subSelectAlternatives.size(), false);
-        if (comparePairs != null)
-            for (AlternativeComparePair a : comparePairs)
-                P.set(a.getI(), a.getJ(), a.getMoreImportant());
-        if (optionalComparePairs != null)
-            for (AlternativeComparePair a : optionalComparePairs)
-                P.set(a.getI(), a.getJ(), a.getMoreImportant());
-        return P;
-    }
-*/
-    // PairwiseComparisons library
+
     public double[][] getMatrix() {
         if (comparePairs.size() + optionalComparePairs.size() == 0) return null;
         double[][] P = new double[result.size()][result.size()];
@@ -99,14 +87,15 @@ public class SelectAlternative extends Alternative {
             // matrix = pairwiseComparisons.koczkodajImprovedMatrixStep(matrix);
             double[] rank = pairwiseComparisons.eigenValueRank(matrix);
             for (int i = 0; i < result.size(); i++) {
-                result.get(i).setWeight(weight * rank[i]);
+                result.get(i).setWeight(rank[i]);
                 if (result.get(i) instanceof SelectAlternative)
                     ((SelectAlternative) result.get(i)).calcWeights2();
             }
+            if (weight != 1.0)
+                adjustSelectAlternativeWeights();
             setWeightStrenghtToChilds();
         }
     }
-
 
     public void printMatrix(double[][] matrix) {
         System.out.println();
@@ -126,48 +115,6 @@ public class SelectAlternative extends Alternative {
         }
     }
 
-    /*
-    public void calcSingleWeight() {
-        PairWiseComparisonMatrix p = getMatrixWithComparePairs();
-        p.setHarkerMethod();
-        p.calcWeights();
-        if (p.isWeightsAllNans()) {
-            p = getMatrixWithComparePairs();
-            p.calcWeights();
-        }
-        for (int i = 0; i < subSelectAlternatives.size(); i++)
-            subSelectAlternatives.get(i).setWeight(weight * p.getWeight(i));
-        p.print();
-        p.printWeights();
-        System.out.println("InconsistencyRatio " + p.getInconsistencyRatio());
-    }
-
-    public void calcWeights() {
-        PairWiseComparisonMatrix p = getMatrixWithComparePairs();
-        if (p.getSize() > 0) {
-            p.setHarkerMethod();
-            p.calcWeights();
-            if (p.isConsistency()) {
-                System.out.println(name + " inconsistency");
-            }
-            if (p.isWeightsAllNans()) {
-                p = getMatrixWithComparePairs();
-                p.calcWeights();
-                if (p.isConsistency()) {
-                    System.out.println(name + " inconsistency");
-                }
-            }
-            for (int i = 0; i < subSelectAlternatives.size(); i++) {
-                subSelectAlternatives.get(i).setWeight(weight * p.getWeight(i));
-                if( subSelectAlternatives.get(i) instanceof SelectAlternative)
-                    ((SelectAlternative)subSelectAlternatives.get(i)).calcWeights();
-            }
-            p.print();
-            p.printWeights();
-            System.out.println("InconsistencyRatio " + p.getInconsistencyRatio());
-        }
-    }
-*/
     public List<SelectAlternative> getSubAlternatives() {
         return subSelectAlternatives;
     }
@@ -191,24 +138,6 @@ public class SelectAlternative extends Alternative {
         return inputAlternatives;
     }
 
-    public List<Alternative> getBestAlternatives() {
-        List<Alternative> alt = new ArrayList<>();
-        subInputAlternatives.forEach(p -> alt.add(p));
-        for (SelectAlternative s : subSelectAlternatives) {
-            // Alternative best = null;
-            List<Alternative> list = s.getResult();
-            list.sort((o1, o2) -> o1.getWeightInt() - o2.getWeightInt());
-            for (int i = 0; i < Math.sqrt(list.size()); i++) {
-                alt.add(list.get(i));
-            }
-          /*  for (Alternative sub : s.getResult())
-                if (best == null || sub.getWeight() > best.getWeight())
-                    best = sub;
-            alt.add(best);*/
-        }
-        return alt;
-    }
-
     @Override
     public String toString() {
         return name;
@@ -222,7 +151,14 @@ public class SelectAlternative extends Alternative {
         return alt;
     }
 
-    private double findMinWeight(List<Alternative> list) {
+    private void adjustSelectAlternativeWeights() {
+        double scale = weight / findMaxWeight(subSelectAlternatives);
+        for (SelectAlternative selectAlternative : subSelectAlternatives) {
+            selectAlternative.setWeight(selectAlternative.getWeight() * scale);
+        }
+    }
+
+    private double findMinWeight(List<? extends Alternative> list) {
         double min = 1;
         for (Alternative alternative : list)
             if (min > alternative.getWeight())
@@ -230,7 +166,7 @@ public class SelectAlternative extends Alternative {
         return min;
     }
 
-    private double findMaxWeight(List<Alternative> list) {
+    private double findMaxWeight(List<? extends Alternative> list) {
         double max = 0;
         for (Alternative alternative : list)
             if (max < alternative.getWeight())
@@ -242,11 +178,11 @@ public class SelectAlternative extends Alternative {
         for (SelectAlternative selectAlternative : subSelectAlternatives) {
             double min = findMinWeight(selectAlternative.getResult());
             double max = findMaxWeight(selectAlternative.getResult());
-            double range = (max - min) / 5.0;
+            double range = (max - min) / 10.0;
             for (Alternative a : selectAlternative.getResult()) {
-                if (a.getWeight() < min + 2*range)
+                if (a.getWeight() < min + 2 * range)
                     a.setWeightStrenght(Parameter.Matching.POORLY);
-                else if (a.getWeight() < min + 4 * range)
+                else if (a.getWeight() < min + 8 * range)
                     a.setWeightStrenght(Parameter.Matching.AVERAGELY);
                 else
                     a.setWeightStrenght(Parameter.Matching.STRONGLY);

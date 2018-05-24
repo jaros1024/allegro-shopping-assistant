@@ -1,7 +1,6 @@
 package com.perez.jaroslav.shoppingassistant.ViewController;
 
 import com.perez.jaroslav.allegrosearchapi.AllegroApi;
-import com.perez.jaroslav.allegrosearchapi.ItemLoader;
 import com.perez.jaroslav.shoppingassistant.sat4j.ResultsReceiver;
 import com.perez.jaroslav.shoppingassistant.weight.Alternative;
 import com.perez.jaroslav.shoppingassistant.weight.AlternativeComparePair;
@@ -15,7 +14,6 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -31,7 +29,7 @@ public class MainController {
     @FXML
     Label titleLabel;
 
-    private enum Phase {TYPE, INPUT_DETAILS, COMPAREING, WEIGHTSRESULTS}
+    private enum Phase {TYPE, INPUT_DETAILS, COMPAREING, WEIGHTSRESULTS, END}
 
     private Phase phase = Phase.TYPE;
     private int actualComparePairList = -1;
@@ -42,9 +40,8 @@ public class MainController {
     private List<AlternativeComparePair> mainPairs;
     private List<AlternativeComparePair> optionalPairs;
     private List<InputAlternative> inputs;
-    private InputPaneController inputPaneController;
     private Alternative altType = new Alternative();
-    private ItemLoader itemLoader;
+    private ResultsReceiver receiverThread = null;
 
     public MainController() {
 
@@ -109,7 +106,6 @@ public class MainController {
             setNextComparison();
             actualChoicePane = new ChoicePaneController(mainPairs, optionalPairs);
             mainView.setCenter(actualChoicePane.getStackPane());
-            //weightManager.getMain().calcWeights2();
             titleLabel.setText(weightManager.getMain().getSubAlternatives().get(actualComparePairList).getName());
         } else {
             weightManager.getMain().calcWeights2();
@@ -124,42 +120,9 @@ public class MainController {
     private void weightResultsControl() {
         ResultController resultController = new ResultController();
         mainView.setCenter(resultController.getAnchorPane());
-        /*HashMap<String, Alternative> alternatives = new HashMap<>();
-        weightManager.getMain().getResult().forEach(p -> alternatives.put(p.getId(), p));
-        ResultsReceiver resultsReceiver = new ResultsReceiver(resultController, alternatives, weightManager.getAllegroApi().getItemLoader());
-        new Thread(resultsReceiver).start();*/
-        List<Alternative> list=new ArrayList<>();
-        list.add(weightManager.getMain());
-        ResultsReceiver resultsReceiver = new ResultsReceiver(resultController, list, weightManager.getAllegroApi().getItemLoader());
-        new Thread(resultsReceiver).start();
-
-      /*  itemLoader = weightManager.getAllegroApi().getItemLoader();
-        Thread thread = new Thread(itemLoader);
-        thread.start();
-*/
-        /*while (itemLoader.hasMorePackets()){
-            try {
-                ItemPacket itemPacket=itemLoader.getNextPacket();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }*/
-       /* ItemPacket itemPacket;
-
-        while (itemLoader.hasMorePackets()) {
-            try {
-                itemPacket = itemLoader.getNextPacket();
-                SimpleSolver solver = new SimpleSolver();
-                solver.setItems(itemPacket.getItems());
-                solver.setAlternatives(alternatives);
-                solver.getResults().stream().sorted().forEachOrdered(result -> System.out.println(result.getItem().getName() + " " + result.getValue()));
-           /* weightManager.addAlternativesToWeightMaxSat();
-            weightManager.addToWeightMaxSatItems(itemPacket);
-            weightManager.getSolve();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }*/
+        receiverThread = new ResultsReceiver(resultController, weightManager.getMain(), weightManager.getAllegroApi().getItemLoader());
+        new Thread(receiverThread).start();
+        phase = Phase.END;
     }
 
 
@@ -218,8 +181,13 @@ public class MainController {
         alert.setTitle(title);
         alert.setHeaderText(header);
         alert.setContentText(content);
-
         alert.showAndWait();
+    }
+
+    private void stopThread() {
+        if (receiverThread != null) {
+            receiverThread.setStop(true);
+        }
     }
 
 }
