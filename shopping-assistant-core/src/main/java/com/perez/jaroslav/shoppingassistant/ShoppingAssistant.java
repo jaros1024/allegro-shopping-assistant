@@ -1,10 +1,12 @@
 package com.perez.jaroslav.shoppingassistant;
 
+import com.perez.jaroslav.shoppingassistant.ViewController.MainController;
 import com.perez.jaroslav.shoppingassistant.weight.WeightManager;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
 import java.io.BufferedReader;
@@ -18,6 +20,7 @@ public class ShoppingAssistant extends Application {
 
     private static WeightManager weightManager = WeightManager.getInstance();
     private static final String MAIN_PANE_FXML = "/MainPane.fxml";
+    private MainController mainController;
 
     public static void main(String[] args) {
         launch(args);
@@ -25,10 +28,13 @@ public class ShoppingAssistant extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        Parent root = FXMLLoader.load(getClass().getResource(MAIN_PANE_FXML));
+        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource(MAIN_PANE_FXML));
+        BorderPane root = (BorderPane) fxmlLoader.load();
+        mainController = (MainController) fxmlLoader.getController();
         primaryStage.setTitle("Shopping Assistant");
         primaryStage.setScene(new Scene(root));
         primaryStage.show();
+
         List<String> credentials = getParameters().getUnnamed();
 
         weightManager.initAllegroApi(credentials.get(0), credentials.get(1), credentials.get(2));
@@ -40,6 +46,7 @@ public class ShoppingAssistant extends Application {
     @Override
     public void stop() {
         System.out.println("STOP");
+        mainController.stopThread();
     }
 
 

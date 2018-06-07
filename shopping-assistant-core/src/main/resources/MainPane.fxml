@@ -6,7 +6,8 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane fx:id="borderMain" minHeight="640" minWidth="860" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.perez.jaroslav.shoppingassistant.ViewController.MainController">
+<BorderPane fx:id="borderMain" minHeight="640" minWidth="860" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.perez.jaroslav.shoppingassistant.ViewController.MainController">
     <padding>
         <Insets bottom="5" left="5" right="5" top="5" />
     </padding>

@@ -1,6 +1,7 @@
 package com.perez.jaroslav.shoppingassistant.ViewController;
 
 import com.perez.jaroslav.allegrosearchapi.items.Parameter;
+import com.perez.jaroslav.shoppingassistant.BrowserOpener;
 import com.perez.jaroslav.shoppingassistant.sat4j.WeightMaxSat;
 import javafx.beans.binding.Bindings;
 import javafx.beans.value.ObservableValue;
@@ -12,8 +13,11 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.paint.Color;
 import javafx.util.Callback;
 
 import java.io.IOException;
@@ -59,6 +63,22 @@ public class ResultController {
                 }
         );
         name.prefWidthProperty().bind(tableView.widthProperty().divide(14));
+        name.setCellFactory(column -> {
+            return new TableCell<WeightMaxSat.Result, String>() {
+                @Override
+                protected void updateItem(String p, boolean empty) {
+                    super.updateItem(p, empty);
+                    if (p == null || empty) {
+                        setText(null);
+                        setStyle("");
+                    } else {
+                        setText(p);
+                        setTextFill(Color.DARKBLUE);
+                        setStyle("    -fx-underline: true;");
+                    }
+                }
+            };
+        });
         TableColumn weight = new TableColumn("ocena");
         weight.setCellValueFactory(
                 new Callback<TableColumn.CellDataFeatures<WeightMaxSat.Result, String>, ObservableValue<String>>() {
@@ -124,6 +144,22 @@ public class ResultController {
         }
         tableView.setItems(data);
 
+        tableView.setRowFactory(tv -> {
+            TableRow<WeightMaxSat.Result> row = new TableRow<>();
+            row.setOnMouseClicked(event -> {
+                if (!row.isEmpty() && event.getButton() == MouseButton.PRIMARY
+                        && event.getClickCount() == 2) {
+
+                    WeightMaxSat.Result clickedRow = row.getItem();
+                    try {
+                        BrowserOpener.open("www.allegro.pl/i" + clickedRow.getItem().getId() + ".html");
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+            return row;
+        });
     }
 
     public AnchorPane getAnchorPane() {

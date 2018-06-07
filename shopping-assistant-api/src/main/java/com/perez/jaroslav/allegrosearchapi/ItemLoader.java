@@ -17,6 +17,7 @@ public class ItemLoader implements Runnable {
     private AuthService authService;
     private int category;
     private ServicePort port;
+    private boolean stop = false;
 
     private Integer totalItems;
     private int totalPackets;
@@ -39,11 +40,11 @@ public class ItemLoader implements Runnable {
             ItemPacket packet = createItemPacket(getItems(offset));
             resultQueue.add(packet);
             completedPackets.incrementAndGet();
-        } while(hasMorePackets());
+        } while (hasMorePackets() && !stop);
     }
 
-    public boolean hasMorePackets(){
-        if(totalItems == null){
+    public boolean hasMorePackets() {
+        if (totalItems == null) {
             return true;
         }
         return (completedPackets.get() < totalPackets);
@@ -53,7 +54,15 @@ public class ItemLoader implements Runnable {
         return resultQueue.take();
     }
 
-    private List<ItemsListType> getItems(int start){
+    public boolean isStop() {
+        return stop;
+    }
+
+    public void setStop(boolean stop) {
+        this.stop = stop;
+    }
+
+    private List<ItemsListType> getItems(int start) {
         DoGetItemsListRequest request = new DoGetItemsListRequest();
         request.setWebapiKey(authService.getUserToken());
         request.setCountryId(1);
@@ -67,14 +76,14 @@ public class ItemLoader implements Runnable {
         request.setFilterOptions(filter);
 
         DoGetItemsListResponse response = port.doGetItemsList(request);
-        if(totalItems == null){
+        if (totalItems == null) {
             setPacketsCountData(response.getItemsCount());
         }
         offset += MAX_RESULT_SIZE;
         return response.getItemsList().getItem();
     }
 
-    private void addCategoryFilter(ArrayOfFilteroptionstype filters){
+    private void addCategoryFilter(ArrayOfFilteroptionstype filters) {
         FilterOptionsType fotcat = new FilterOptionsType();
         fotcat.setFilterId("category");
         ArrayOfString categories = new ArrayOfString();
@@ -83,7 +92,7 @@ public class ItemLoader implements Runnable {
         filters.getItem().add(fotcat);
     }
 
-    private void addStateFilter(ArrayOfFilteroptionstype filters){
+    private void addStateFilter(ArrayOfFilteroptionstype filters) {
         FilterOptionsType fotcat = new FilterOptionsType();
         fotcat.setFilterId("condition");
         ArrayOfString conditionArray = new ArrayOfString();
@@ -92,12 +101,12 @@ public class ItemLoader implements Runnable {
         filters.getItem().add(fotcat);
     }
 
-    private ItemPacket createItemPacket(List<ItemsListType> items){
-        return new ItemPacketBuilder(authService, port, filterMap).createItemPacket(items, completedPackets.get()+1);
+    private ItemPacket createItemPacket(List<ItemsListType> items) {
+        return new ItemPacketBuilder(authService, port, filterMap).createItemPacket(items, completedPackets.get() + 1);
     }
 
-    private void setPacketsCountData(int totalItems){
+    private void setPacketsCountData(int totalItems) {
         this.totalItems = totalItems;
-        totalPackets = (int)Math.ceil( ((double)totalItems) / ((double)MAX_RESULT_SIZE) );
+        totalPackets = (int) Math.ceil(((double) totalItems) / ((double) MAX_RESULT_SIZE));
     }
 }

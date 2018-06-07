@@ -7,13 +7,17 @@ import com.perez.jaroslav.shoppingassistant.weight.AlternativeComparePair;
 import com.perez.jaroslav.shoppingassistant.weight.InputAlternative;
 import com.perez.jaroslav.shoppingassistant.weight.WeightManager;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 
+import java.io.IOException;
 import java.util.List;
 
 
@@ -42,9 +46,9 @@ public class MainController {
     private List<InputAlternative> inputs;
     private Alternative altType = new Alternative();
     private ResultsReceiver receiverThread = null;
+    private Parent parent;
 
     public MainController() {
-
     }
 
     @FXML
@@ -184,10 +188,13 @@ public class MainController {
         alert.showAndWait();
     }
 
-    private void stopThread() {
+    public void stopThread() {
         if (receiverThread != null) {
             receiverThread.setStop(true);
         }
     }
 
+    public Parent getParent() {
+        return parent;
+    }
 }

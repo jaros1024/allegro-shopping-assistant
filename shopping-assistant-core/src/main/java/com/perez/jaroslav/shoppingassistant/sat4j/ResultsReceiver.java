@@ -39,6 +39,7 @@ public class ResultsReceiver implements Runnable {
                 e.printStackTrace();
             }
         }
+        loader.setStop(true);
     }
 
     public void setStop(boolean stop) {

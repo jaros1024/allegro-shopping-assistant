@@ -43,8 +43,7 @@ public class WeightResultsController {
             if (p instanceof SelectAlternative)
                 ((SelectAlternative) p).getResult()
                         .stream()
-                        .sorted((o1, o2) -> (o1.getWeight() < o2.getWeight() ? 1 : -1))
-                        .forEachOrdered(p2 -> treeItem1.getChildren().add(new TreeItem<>(p2)));
+                        .forEach(p2 -> treeItem1.getChildren().add(new TreeItem<>(p2)));
             treeItem.getChildren().add(treeItem1);
         });
         treeCategoryColumn.prefWidthProperty().bind(treeTable.widthProperty().divide(2));

@@ -45,7 +45,7 @@ public class WeightMaxSat {
             for (SelectAlternative s : main.getSubAlternatives()) {
                 VecInt vecInt = new VecInt();
                 List<Alternative> list = s.getResult();
-                list.sort((o1, o2) -> o2.getWeightInt() - o1.getWeightInt());
+                //list.sort((o1, o2) -> o2.getWeightInt() - o1.getWeightInt());
                 for (int i = 0; i < list.size(); i++) {
                     counter++;
                     maxSatDecorator.addSoftClause(list.get(i).getWeightInt(), new VecInt(new int[]{counter}));
