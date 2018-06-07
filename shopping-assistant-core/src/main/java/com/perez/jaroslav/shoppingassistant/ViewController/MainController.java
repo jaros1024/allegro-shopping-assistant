@@ -6,18 +6,17 @@ import com.perez.jaroslav.shoppingassistant.weight.Alternative;
 import com.perez.jaroslav.shoppingassistant.weight.AlternativeComparePair;
 import com.perez.jaroslav.shoppingassistant.weight.InputAlternative;
 import com.perez.jaroslav.shoppingassistant.weight.WeightManager;
+import javafx.application.Platform;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 
-import java.io.IOException;
 import java.util.List;
 
 
@@ -47,6 +46,7 @@ public class MainController {
     private Alternative altType = new Alternative();
     private ResultsReceiver receiverThread = null;
     private Parent parent;
+    private Task task;
 
     public MainController() {
     }
@@ -112,18 +112,36 @@ public class MainController {
             mainView.setCenter(actualChoicePane.getStackPane());
             titleLabel.setText(weightManager.getMain().getSubAlternatives().get(actualComparePairList).getName());
         } else {
-            weightManager.getMain().calcWeights2();
-            AnchorPane anchorPane = new WeightResultsController(weightManager.getMain()).getAnchorPane();
-            mainView.setCenter(anchorPane);
-            BorderPane.setAlignment(anchorPane, Pos.CENTER);
-            titleLabel.setText("Wyniki");
-            phase = Phase.WEIGHTSRESULTS;
+            nextButton.setDisable(true);
+            ProgressTracker progressTracker = new ProgressTracker();
+            task = progressTracker.createTask();
+            mainView.setCenter(progressTracker.createLayout(task));
+            new Thread(task).start();
+            new Thread(() -> {
+                weightManager.getMain().calcWeights2();
+                AnchorPane anchorPane = new WeightResultsController(weightManager.getMain()).getAnchorPane();
+                Platform.runLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        mainView.setCenter(anchorPane);
+                        BorderPane.setAlignment(anchorPane, Pos.CENTER);
+                        titleLabel.setText("Wyniki");
+                        task.cancel();
+                        phase = Phase.WEIGHTSRESULTS;
+                        nextButton.setDisable(false);
+                    }
+                });
+            }).start();
         }
     }
 
     private void weightResultsControl() {
-        ResultController resultController = new ResultController();
-        mainView.setCenter(resultController.getAnchorPane());
+        nextButton.setDisable(true);
+        ProgressTracker progressTracker = new ProgressTracker();
+        task = progressTracker.createTask();
+        mainView.setCenter(progressTracker.createLayout(task));
+        new Thread(task).start();
+        ResultController resultController = new ResultController(task,mainView);
         receiverThread = new ResultsReceiver(resultController, weightManager.getMain(), weightManager.getAllegroApi().getItemLoader());
         new Thread(receiverThread).start();
         phase = Phase.END;
@@ -191,6 +209,9 @@ public class MainController {
     public void stopThread() {
         if (receiverThread != null) {
             receiverThread.setStop(true);
+        }
+        if(task!=null && task.isRunning()){
+            task.cancel();
         }
     }
 

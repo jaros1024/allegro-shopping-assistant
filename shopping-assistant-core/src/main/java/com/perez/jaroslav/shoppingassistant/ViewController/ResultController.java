@@ -3,10 +3,13 @@ package com.perez.jaroslav.shoppingassistant.ViewController;
 import com.perez.jaroslav.allegrosearchapi.items.Parameter;
 import com.perez.jaroslav.shoppingassistant.BrowserOpener;
 import com.perez.jaroslav.shoppingassistant.sat4j.WeightMaxSat;
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.SortedList;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -17,6 +20,7 @@ import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
 import javafx.util.Callback;
 
@@ -25,15 +29,20 @@ import java.util.HashMap;
 import java.util.List;
 
 public class ResultController {
-
     @FXML
     private AnchorPane anchorPane;
     @FXML
     private TableView<WeightMaxSat.Result> tableView;
 
     private ObservableList<WeightMaxSat.Result> data = FXCollections.observableArrayList();
+    private TableColumn weight;
+    private SortedList<WeightMaxSat.Result> sortedData = new SortedList<>(data);
+    private Task task;
+    private BorderPane mainView;
 
-    public ResultController() {
+    public ResultController(Task task, BorderPane mainView) {
+        this.task = task;
+        this.mainView = mainView;
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/ResultsTable.fxml"));
         fxmlLoader.setController(this);
         try {
@@ -79,7 +88,7 @@ public class ResultController {
                 }
             };
         });
-        TableColumn weight = new TableColumn("ocena");
+        weight = new TableColumn("ocena");
         weight.setCellValueFactory(
                 new Callback<TableColumn.CellDataFeatures<WeightMaxSat.Result, String>, ObservableValue<String>>() {
                     @Override
@@ -142,7 +151,6 @@ public class ResultController {
             p.setCellFactory(cellValueChange);
             tableView.getColumns().add(p);
         }
-        tableView.setItems(data);
 
         tableView.setRowFactory(tv -> {
             TableRow<WeightMaxSat.Result> row = new TableRow<>();
@@ -160,6 +168,15 @@ public class ResultController {
             });
             return row;
         });
+
+        sortedData.comparatorProperty().bind(tableView.comparatorProperty());
+        tableView.setItems(sortedData);
+        weight.setSortType(TableColumn.SortType.DESCENDING);
+        tableView.getSortOrder().addAll(weight);
+    }
+
+    public ResultController(Task task) {
+        this.task = task;
     }
 
     public AnchorPane getAnchorPane() {
@@ -171,6 +188,13 @@ public class ResultController {
     }
 
     public void addResultToList(WeightMaxSat.Result result) {
+        Platform.runLater(() ->
+        {
+            if (task.isRunning()) {
+                task.cancel();
+                mainView.setCenter(getAnchorPane());
+            }
+        });
         data.add(result);
     }
 }
