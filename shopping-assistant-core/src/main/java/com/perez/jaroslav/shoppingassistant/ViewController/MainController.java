@@ -113,6 +113,7 @@ public class MainController {
             titleLabel.setText(weightManager.getMain().getSubAlternatives().get(actualComparePairList).getName());
         } else {
             nextButton.setDisable(true);
+            titleLabel.setText("Wyniki");
             ProgressTracker progressTracker = new ProgressTracker();
             task = progressTracker.createTask();
             mainView.setCenter(progressTracker.createLayout(task));
@@ -125,7 +126,6 @@ public class MainController {
                     public void run() {
                         mainView.setCenter(anchorPane);
                         BorderPane.setAlignment(anchorPane, Pos.CENTER);
-                        titleLabel.setText("Wyniki");
                         task.cancel();
                         phase = Phase.WEIGHTSRESULTS;
                         nextButton.setDisable(false);

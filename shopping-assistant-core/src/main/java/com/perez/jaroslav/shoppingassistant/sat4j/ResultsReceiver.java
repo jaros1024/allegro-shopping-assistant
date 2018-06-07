@@ -13,6 +13,8 @@ public class ResultsReceiver implements Runnable {
     private Alternative alternative;
     private ItemLoader loader;
     private boolean stop = false;
+    private int size = 0;
+    private double sum = 0.0;
 
     public ResultsReceiver(ResultController resultController, Alternative alternative, ItemLoader loader) {
         this.resultController = resultController;
@@ -32,8 +34,11 @@ public class ResultsReceiver implements Runnable {
                     WeightMaxSat weightMaxSat = new WeightMaxSat();
                     weightMaxSat.setMain((SelectAlternative) alternative);
                     WeightMaxSat.Result r = weightMaxSat.solve(item);
-                    if (r.getValue() > 0.01)
+                    if (size == 0 || r.getValue() >= sum / size) {
                         resultController.addResultToList(r);
+                        size++;
+                        sum += r.getValue();
+                    }
                 }
             } catch (Exception e) {
                 e.printStackTrace();
